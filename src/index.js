@@ -1,13 +1,66 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.css";
+import reportWebVitals from "./reportWebVitals";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Contact from "./routes/Contact";
+import Index from "./routes/Index";
+import Root from "./routes/Root";
+import { fetchCommentsForPost, fetchPost, fetchPosts } from "./api";
+import Post from "./routes/Post";
+import Comments from "./Comments";
+import LeaveComment from "./routes/LeaveComment";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+    children: [
+      {
+        path: "/",
+        element: <Index />,
+        loader() {
+          return fetchPosts();
+        },
+      },
+      {
+        path: "/contact",
+        element: <Contact />,
+      },
+      {
+        path: "/posts/:id", // :id is a dynamic segment
+        loader({ params }) {
+          return fetchPost(params.id);
+        },
+        element: <Post />,
+        children: [
+          // the "index" route of the parent post route
+          {
+            path: "/posts/:id",
+            element: <p>Make some new friends 💬</p>,
+          },
+          {
+            path: "/posts/:id/comments",
+            loader({ params }) {
+              return fetchCommentsForPost(params.id);
+            },
+            element: <Comments />,
+          },
+          {
+            path: "/posts/:id/comments/new",
+            element: <LeaveComment />,
+          },
+        ],
+      },
+    ],
+  },
+]);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
